@@ -1,0 +1,42 @@
+package minesweeper;
+
+import java.awt.AWTException;
+import java.awt.Robot;
+
+public class Player implements Runnable {
+	public static void main(String[] args) throws AWTException, InterruptedException {
+		Robot r = new Robot();
+		Minesweeper ms = new Minesweeper(r);
+		Thread game = new Thread(ms);
+		game.start();
+		Thread.sleep(1000);
+		game.interrupt();
+		// r.mouseMove(left(25) + Match.BLUE.xOff, top(7) + Match.BLUE.yOff);
+		// System.out.println(r.getPixelColor(xmid(24) - 9, ymid(7)).getRGB());
+		// for (int i = 0; i < HEI; i++) {
+		// for (int j = 0; j < WID; j++) {
+		// r.mouseMove(left(j), top(i));
+		// Thread.sleep(100);
+		// // System.out.print(get(j, i));
+		//
+		// }
+		// System.out.println();
+		// }
+	}
+
+	@Override
+	public void run() {
+
+		try {
+			while (true) {
+				Thread.sleep(5);
+
+			}
+		}
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+		}
+	}
+}
