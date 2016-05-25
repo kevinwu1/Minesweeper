@@ -4,33 +4,39 @@ import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Minesweeper implements Runnable {
 	final int x0, y0, wid, hei;
 	final double w;
+	Robot r;
 
-	public static void main(String[] args) throws AWTException {
+	int[] board;
+	Set<Integer> numCells;
+
+	static void test() throws AWTException {
 		Robot r = new Robot();
 		Minesweeper ms = new Minesweeper(r);
-		for (int h = 0; h < ms.hei; h++) {
-			for (int w = 0; w < ms.wid; w++) {
-				System.out.print(ms.get(w, h));
-				// ms.get(w, h);
-			}
-			System.out.println();
-		}
-		// int px = 0, py = 0;
-		// Match m = Match.BLANK;
-		// r.mouseMove(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w));
-		// System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)));
-		// System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)).getRGB());
-		// System.out.println(m.getRGB());
-		// System.out.println(new Color(m.getRGB()));
-		// System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)).getRGB() == m
-		// .getRGB());
+		// for (int h = 0; h < ms.hei; h++) {
+		// for (int w = 0; w < ms.wid; w++) {
+		// System.out.print(ms.get(w, h));
+		// // ms.get(w, h);
+		// }
 		// System.out.println();
-		// System.out.println();
-		// System.out.println(m.matches(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w))));
+		// }
+		int px = 12, py = 3;
+		Match m = Match.MINE;
+		r.mouseMove(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w));
+		System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)));
+		System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)).getRGB());
+		System.out.println(m.getRGB());
+		System.out.println(new Color(m.getRGB()));
+		System.out.println(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w)).getRGB() == m
+				.getRGB());
+		System.out.println();
+		System.out.println();
+		System.out.println(m.matches(r.getPixelColor(ms.left(px) + m.getXOff(ms.w), ms.top(py) + m.getYOff(ms.w))));
 	}
 
 	public Minesweeper(Robot r) {
@@ -45,14 +51,20 @@ public class Minesweeper implements Runnable {
 		this.hei = hei;
 		w = (732.0 - 29) / wid;
 		this.r = r;
+		board = new int[wid * hei];
+		numCells = new HashSet<>();
 	}
-
-	Robot r;
 
 	void click(int x, int y) {
 		r.mouseMove(xmid(x), ymid(y));
 		r.mousePress(InputEvent.BUTTON1_MASK);
 		r.mouseRelease(InputEvent.BUTTON1_MASK);
+	}
+
+	void rClick(int x, int y) {
+		r.mouseMove(xmid(x), ymid(y));
+		r.mousePress(InputEvent.BUTTON3_MASK);
+		r.mouseRelease(InputEvent.BUTTON3_MASK);
 	}
 
 	void move(int x, int y) {
@@ -84,45 +96,37 @@ public class Minesweeper implements Runnable {
 	}
 
 	int get(int x, int y) {
-		for (Match m : Match.values()) {
-			if (m.matches(r.getPixelColor(left(x) + m.getXOff(w), top(y) + m.getYOff(w))))
-				return m.getVal();
-		}
-		// BufferedImage bi = r.createScreenCapture(new Rectangle(left(x), top(y), (int) w, (int) w));
-		// for (int i = 0; i < bi.getWidth(); i++) {
-		// for (int j = 0; j < bi.getHeight(); j++) {
-		// int c = bi.getRGB(i, j);
-		// if (c == WHITE)
-		// return -1;
-		// if (c == BLUE)
-		// return 1;
-		// if (c == GREEN)
-		// return 2;
-		// if (c == RED)
-		// return 3;
-		// if (c == DBLUE)
-		// return 4;
-		// }
+		Match pioup = Match.THREE;
+		System.out.println(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w)));
+		System.out.println(pioup.matches(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w))));
+		// System.out.println(pioup.);
+		// for (Match m : Match.values()) {
+		// if (m.matches(r.getPixelColor(left(x) + m.getXOff(w), top(y) + m.getYOff(w))))
+		// return m.getVal();
 		// }
 		return 0;
 	}
-	static final int WHITE = -1052689, BLUE = -16776961, GREEN = -16745728, RED = -260602, DBLUE = -16777094;
+	static final int WHITE = -1052689, BLUE = -16776961, GREEN = -16745728, RED = -260602, DBLUE = -16777094,
+			BLACK = -16777216;
 
 	enum Match {
-		BLANK(WHITE, 0.5, 0.07, 9), //
-		ONE(BLUE, 0.5, 0.7, 1), //
-		TWO(GREEN, 0.3, 0.7, 2), //
-		THREE(RED, 0.6, 0.5, 3), //
-		FOUR(DBLUE, 0.6, 0.5, 4);
+		MINE(BLACK, 0.5, 0.75, -2, 120), //
+		BLANK(WHITE, 0.5, 0.07, -1, 120), //
+		ONE(BLUE, 0.5, 0.7, 1, 120), //
+		TWO(GREEN, 0.3, 0.7, 2, 120), //
+		THREE(RED, 0.6, 0.5, 3, 150), //
+		FOUR(DBLUE, 0.6, 0.5, 4, 120); //
 
 		private final int rgb, val;
 		private final double xOff, yOff;
+		private int thresh;
 
-		Match(int rgb, double xOff, double yOff, int val) {
+		Match(int rgb, double xOff, double yOff, int val, int thresh) {
 			this.rgb = rgb;
 			this.xOff = xOff;
 			this.yOff = yOff;
 			this.val = val;
+			this.thresh = thresh;
 		}
 
 		int getRGB() {
@@ -143,28 +147,172 @@ public class Minesweeper implements Runnable {
 
 		boolean matches(Color c) {
 			Color tc = new Color(rgb);
+			System.out.println(tc);
 			int off = Math.abs(c.getRed() - tc.getRed()) //
 					+ Math.abs(c.getBlue() - tc.getBlue())//
 					+ Math.abs(c.getGreen() - tc.getGreen());
-			// System.out.println();
-			// System.out.println(off);
-			// System.out.println();
-			return off < 120;
+			System.out.println();
+			System.out.println("OFF: " + off);
+			System.out.println();
+			return off < thresh;
 		}
+	}
+
+	boolean connected(int i, int j) {
+		if (i < 0 || j < 0)
+			return false;
+		if (i > wid * hei || j > wid * hei)
+			return false;
+		return Math.abs((i % wid) - (j % wid)) <= 1 && Math.abs((i / wid) - (j / wid)) <= 1;
+	}
+
+	boolean isComplete(int i) {
+		for (int v = -wid; v <= wid; v += wid) {
+			for (int h = -1; h <= 1; h++) {
+				if (connected(i + h + v, i)) {
+					// System.out.println(i + h + v);
+					if (board[i + h + v] == -1)
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	void read() {
+		for (int h = 0; h < hei; h++) {
+			for (int w = 0; w < wid; w++) {
+				board[h * 31 + w] = get(w, h);
+			}
+		}
+	}
+
+	void printBoard() {
+		for (int i = 0; i < board.length; i++) {
+			if (i % wid == 0)
+				System.out.println();
+			System.out.print(board[i] == -1 ? "-" : board[i] == -2 ? "*" : board[i]);
+		}
+	}
+
+	void addAll() {
+		for (int i = 0; i < board.length; i++) {
+			if (!isComplete(i) && board[i] != -1)
+				numCells.add(i);
+		}
+	}
+
+	void tryComplete() {
+		boolean stop = false;
+		int count = 0;
+		while (!stop) {
+			stop = true;
+			Set<Integer> rem = new HashSet<>();
+			Set<Integer> add = new HashSet<>();
+			for (int i : numCells) {
+				if (completeCell(i, rem, add))
+					stop = false;
+			}
+			numCells.removeAll(rem);
+			numCells.addAll(add);
+			rem.clear();
+			add.clear();
+			for (int i : numCells) {
+				if (completeCell(i, rem, add))
+					stop = false;
+			}
+			numCells.removeAll(rem);
+			numCells.addAll(add);
+			// try {
+			// Thread.sleep(10);
+			// }
+			// catch (InterruptedException e) {
+			// e.printStackTrace();
+			// }
+			System.out.println(count++);
+		}
+	}
+
+	boolean completeCell(int i, Set<Integer> rem, Set<Integer> add) {
+		System.out.println("Checking : " + (i % wid) + " , " + i / wid);
+		boolean ret = false;
+		int openCells = 0;
+		int mineCells = 0;
+		for (int v = -wid; v <= wid; v += wid) {
+			for (int h = -1; h <= 1; h++) {
+				int o = i + h + v;
+				if (connected(o, i)) {
+					if (board[o] == -1)
+						openCells++;
+					if (board[o] == -2)
+						mineCells++;
+				}
+			}
+		}
+
+		System.out.println(i);
+		System.out.println(board[i]);
+		System.out.println(openCells);
+		System.out.println(mineCells);
+		if (openCells == board[i] - mineCells) { // mine all
+			for (int v = -wid; v <= wid; v += wid) {
+				for (int h = -1; h <= 1; h++) {
+					int o = i + h + v;
+					if (connected(o, i)) {
+						if (board[o] == -1) {
+							board[o] = -2;
+							rClick(o % wid, o / wid);
+							ret = true;
+						}
+					}
+				}
+			}
+			rem.add(i);
+		}
+		if (board[i] == mineCells) { // clear All
+			for (int v = -wid; v <= wid; v += wid) {
+				for (int h = -1; h <= 1; h++) {
+					int o = i + h + v;
+					if (connected(o, i)) {
+						if (board[o] == -1) {
+							click(o % wid, o / wid);
+							try {
+								Thread.sleep(10);
+							}
+							catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							board[o] = get(o % wid, o / wid);
+							add.add(o);
+							ret = true;
+						}
+					}
+				}
+			}
+			rem.add(i);
+		}
+
+		return ret;
+	}
+
+	public static void main(String[] args) throws AWTException {
+		Minesweeper ms = new Minesweeper(new Robot());
+		System.out.println(ms.get(10, 12));
+		ms.move(10, 12);
+		// ms.read();
+		// ms.addAll();
+		// ms.completeCell(12 * ms.wid + 10, new HashSet<>(), new HashSet<>());
+		// System.out.println(14 * ms.wid + 12);
 	}
 
 	@Override
 	public void run() {
-		int a = 0;
-		try {
-			while (true) {
-				Thread.sleep(100);
-				System.out.println("a " + (a++));
-			}
-		}
-		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		move(14, 12);
+		// completeCell(i, rem, add)
+		// read();
+		// // printBoard();
+		// addAll();
+		// tryComplete();
+		// System.out.println("Done");
 	}
 }
