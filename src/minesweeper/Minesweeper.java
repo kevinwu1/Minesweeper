@@ -96,26 +96,28 @@ public class Minesweeper implements Runnable {
 	}
 
 	int get(int x, int y) {
-		Match pioup = Match.THREE;
-		System.out.println(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w)));
-		System.out.println(pioup.matches(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w))));
-		// System.out.println(pioup.);
-		// for (Match m : Match.values()) {
-		// if (m.matches(r.getPixelColor(left(x) + m.getXOff(w), top(y) + m.getYOff(w))))
-		// return m.getVal();
-		// }
+		// Match pioup = Match.SIX;
+		// System.out.println(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w)));
+		// r.mouseMove(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w));
+		// System.out.println(pioup.matches(r.getPixelColor(left(x) + pioup.getXOff(w), top(y) + pioup.getYOff(w))));
+		for (Match m : Match.values()) {
+			if (m.matches(r.getPixelColor(left(x) + m.getXOff(w), top(y) + m.getYOff(w))))
+				return m.getVal();
+		}
 		return 0;
 	}
 	static final int WHITE = -1052689, BLUE = -16776961, GREEN = -16745728, RED = -260602, DBLUE = -16777094,
-			BLACK = -16777216;
+			BLACK = -16777216, DRED = -8116955, TEAL = -16746119;
 
 	enum Match {
 		MINE(BLACK, 0.5, 0.75, -2, 120), //
 		BLANK(WHITE, 0.5, 0.07, -1, 120), //
 		ONE(BLUE, 0.5, 0.7, 1, 120), //
 		TWO(GREEN, 0.3, 0.7, 2, 120), //
-		THREE(RED, 0.6, 0.5, 3, 150), //
-		FOUR(DBLUE, 0.6, 0.5, 4, 120); //
+		THREE(RED, 0.7, 0.38, 3, 120), //
+		FOUR(DBLUE, 0.6, 0.5, 4, 120), //
+		FIVE(DRED, 0.2, 0.5, 5, 120), //
+		SIX(TEAL, 0.65, 0.5, 6, 120);
 
 		private final int rgb, val;
 		private final double xOff, yOff;
@@ -147,13 +149,14 @@ public class Minesweeper implements Runnable {
 
 		boolean matches(Color c) {
 			Color tc = new Color(rgb);
-			System.out.println(tc);
+			// System.out.println(tc);
+			// System.out.println(c.getRGB());
 			int off = Math.abs(c.getRed() - tc.getRed()) //
 					+ Math.abs(c.getBlue() - tc.getBlue())//
 					+ Math.abs(c.getGreen() - tc.getGreen());
-			System.out.println();
-			System.out.println("OFF: " + off);
-			System.out.println();
+			// System.out.println();
+			// System.out.println("OFF: " + off);
+			// System.out.println();
 			return off < thresh;
 		}
 	}
@@ -161,7 +164,7 @@ public class Minesweeper implements Runnable {
 	boolean connected(int i, int j) {
 		if (i < 0 || j < 0)
 			return false;
-		if (i > wid * hei || j > wid * hei)
+		if (i >= wid * hei || j >= wid * hei)
 			return false;
 		return Math.abs((i % wid) - (j % wid)) <= 1 && Math.abs((i / wid) - (j / wid)) <= 1;
 	}
@@ -217,6 +220,8 @@ public class Minesweeper implements Runnable {
 			numCells.addAll(add);
 			rem.clear();
 			add.clear();
+			// read();
+			addAll();
 			for (int i : numCells) {
 				if (completeCell(i, rem, add))
 					stop = false;
@@ -234,7 +239,7 @@ public class Minesweeper implements Runnable {
 	}
 
 	boolean completeCell(int i, Set<Integer> rem, Set<Integer> add) {
-		System.out.println("Checking : " + (i % wid) + " , " + i / wid);
+		// System.out.println("Checking : " + (i % wid) + " , " + i / wid);
 		boolean ret = false;
 		int openCells = 0;
 		int mineCells = 0;
@@ -250,10 +255,10 @@ public class Minesweeper implements Runnable {
 			}
 		}
 
-		System.out.println(i);
-		System.out.println(board[i]);
-		System.out.println(openCells);
-		System.out.println(mineCells);
+		// System.out.println(i);
+		// System.out.println(board[i]);
+		// System.out.println(openCells);
+		// System.out.println(mineCells);
 		if (openCells == board[i] - mineCells) { // mine all
 			for (int v = -wid; v <= wid; v += wid) {
 				for (int h = -1; h <= 1; h++) {
@@ -277,7 +282,7 @@ public class Minesweeper implements Runnable {
 						if (board[o] == -1) {
 							click(o % wid, o / wid);
 							try {
-								Thread.sleep(10);
+								Thread.sleep(2);
 							}
 							catch (InterruptedException e) {
 								e.printStackTrace();
@@ -297,22 +302,17 @@ public class Minesweeper implements Runnable {
 
 	public static void main(String[] args) throws AWTException {
 		Minesweeper ms = new Minesweeper(new Robot());
-		System.out.println(ms.get(10, 12));
-		ms.move(10, 12);
-		// ms.read();
-		// ms.addAll();
-		// ms.completeCell(12 * ms.wid + 10, new HashSet<>(), new HashSet<>());
-		// System.out.println(14 * ms.wid + 12);
+		ms.move(18, 4);
+		System.out.println(ms.get(18, 4));
 	}
 
 	@Override
 	public void run() {
-		move(14, 12);
+		// move(14, 12);
 		// completeCell(i, rem, add)
-		// read();
-		// // printBoard();
-		// addAll();
-		// tryComplete();
-		// System.out.println("Done");
+		read();
+		addAll();
+		tryComplete();
+		System.out.println("Done");
 	}
 }

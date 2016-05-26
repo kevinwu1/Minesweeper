@@ -9,7 +9,7 @@ public class Player implements Runnable {
 		Minesweeper ms = new Minesweeper(r);
 		Thread game = new Thread(ms);
 		game.start();
-		Thread.sleep(30000);
+		Thread.sleep(10000);
 		game.interrupt();
 		game.stop();
 		// r.mouseMove(left(25) + Match.BLUE.xOff, top(7) + Match.BLUE.yOff);
