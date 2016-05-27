@@ -4,6 +4,7 @@ import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -182,6 +183,10 @@ public class Minesweeper implements Runnable {
 		return true;
 	}
 
+	void openCell(int i) {
+		click(i % wid, i / wid);
+	}
+
 	void read() {
 		for (int h = 0; h < hei; h++) {
 			for (int w = 0; w < wid; w++) {
@@ -190,22 +195,24 @@ public class Minesweeper implements Runnable {
 		}
 	}
 
-	void printBoard() {
+	void printBoard(int[] board) {
 		for (int i = 0; i < board.length; i++) {
 			if (i % wid == 0)
 				System.out.println();
-			System.out.print(board[i] == -1 ? "-" : board[i] == -2 ? "*" : board[i]);
+			System.out.print(board[i] == -1 ? "-" : board[i] == -2 ? "*" : board[i] == -3 ? "+" : board[i]);
 		}
 	}
 
 	void addAll() {
+		numCells.clear();
 		for (int i = 0; i < board.length; i++) {
-			if (!isComplete(i) && board[i] != -1)
+			if (!isComplete(i) && board[i] > 0)
 				numCells.add(i);
 		}
 	}
 
-	void tryComplete() {
+	boolean tryComplete(boolean click, int[] board, Set<Integer> numCells) {
+		boolean anyClicked = false;
 		boolean stop = false;
 		int count = 0;
 		while (!stop) {
@@ -213,8 +220,10 @@ public class Minesweeper implements Runnable {
 			Set<Integer> rem = new HashSet<>();
 			Set<Integer> add = new HashSet<>();
 			for (int i : numCells) {
-				if (completeCell(i, rem, add))
+				if (completeCell(i, rem, add, click, board)) {
 					stop = false;
+					anyClicked = true;
+				}
 			}
 			numCells.removeAll(rem);
 			numCells.addAll(add);
@@ -223,7 +232,7 @@ public class Minesweeper implements Runnable {
 			// read();
 			addAll();
 			for (int i : numCells) {
-				if (completeCell(i, rem, add))
+				if (completeCell(i, rem, add, click, board))
 					stop = false;
 			}
 			numCells.removeAll(rem);
@@ -234,11 +243,12 @@ public class Minesweeper implements Runnable {
 			// catch (InterruptedException e) {
 			// e.printStackTrace();
 			// }
-			System.out.println(count++);
+			// System.out.println(count++);
 		}
+		return anyClicked;
 	}
 
-	boolean completeCell(int i, Set<Integer> rem, Set<Integer> add) {
+	boolean completeCell(int i, Set<Integer> rem, Set<Integer> add, boolean click, int[] board) {
 		// System.out.println("Checking : " + (i % wid) + " , " + i / wid);
 		boolean ret = false;
 		int openCells = 0;
@@ -266,7 +276,8 @@ public class Minesweeper implements Runnable {
 					if (connected(o, i)) {
 						if (board[o] == -1) {
 							board[o] = -2;
-							rClick(o % wid, o / wid);
+							if (click)
+								rClick(o % wid, o / wid);
 							ret = true;
 						}
 					}
@@ -280,14 +291,19 @@ public class Minesweeper implements Runnable {
 					int o = i + h + v;
 					if (connected(o, i)) {
 						if (board[o] == -1) {
-							click(o % wid, o / wid);
-							try {
-								Thread.sleep(2);
+							if (click) {
+								click(o % wid, o / wid);
+								try {
+									Thread.sleep(2);
+								}
+								catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								board[o] = get(o % wid, o / wid);
 							}
-							catch (InterruptedException e) {
-								e.printStackTrace();
+							else {
+								board[o] = -3;
 							}
-							board[o] = get(o % wid, o / wid);
 							add.add(o);
 							ret = true;
 						}
@@ -300,10 +316,86 @@ public class Minesweeper implements Runnable {
 		return ret;
 	}
 
+	// copy new board
+	// assume square
+	// solve
+	// checkContradiction
+
+	boolean assume() {
+		Set<Integer> numCells2 = new HashSet<>();
+		numCells2.addAll(numCells);
+		for (int i : numCells2) {
+			for (int v = -wid; v <= wid; v += wid) {
+				for (int h = -1; h <= 1; h++) {
+					int o = i + h + v;
+					if (connected(o, i)) {
+						if (board[o] == -1) {
+							boolean isOk = assume(o);
+							if (!isOk) {
+								// System.out.println("clicking : " + o);
+								openCell(o);
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	// return true if assumption is ok
+	// return false if assumption is bad
+	boolean assume(int i) {
+		// System.out.println(i % wid + " , " + i / wid);
+		int[] nboard = Arrays.copyOf(board, board.length);
+		nboard[i] = -2;
+		Set<Integer> numCells2 = new HashSet<>();
+		numCells2.addAll(numCells);
+		tryComplete(false, nboard, numCells2);
+		for (int q = 0; q < nboard.length; q++) {
+			if (nboard[q] > 0) {
+				boolean b = contradiction(nboard, q);
+				if (b)
+					return false;
+			}
+		}
+		return true;
+	}
+
+	boolean contradiction(int[] board, int i) {
+		int openCells = 0;
+		int mineCells = 0;
+		int value = board[i];
+		for (int v = -wid; v <= wid; v += wid) {
+			for (int h = -1; h <= 1; h++) {
+				int o = i + h + v;
+				if (connected(o, i)) {
+					if (board[o] == -1)
+						openCells++;
+					if (board[o] == -2)
+						mineCells++;
+				}
+			}
+		}
+		if (value - mineCells > openCells)
+			return true; // not enough open squares to fill mines
+		if (mineCells > value)
+			return true; // more mines than cell says
+		return false;
+	}
+
+	//
+	// boolean contradictionExists(int[] board, int i) {
+	//
+	// }
+
 	public static void main(String[] args) throws AWTException {
 		Minesweeper ms = new Minesweeper(new Robot());
-		ms.move(18, 4);
-		System.out.println(ms.get(18, 4));
+		ms.read();
+		ms.addAll();
+		ms.assume();
+		// ms.printBoard();
 	}
 
 	@Override
@@ -312,7 +404,15 @@ public class Minesweeper implements Runnable {
 		// completeCell(i, rem, add)
 		read();
 		addAll();
-		tryComplete();
+		boolean anyClicked1 = true;
+		boolean anyClicked2 = true;
+		while (anyClicked1 || anyClicked2) {
+			anyClicked1 = tryComplete(true, board, numCells);
+			anyClicked2 = assume();
+			read();
+			addAll();
+			System.out.println(numCells.size());
+		}
 		System.out.println("Done");
 	}
 }
