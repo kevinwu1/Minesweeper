@@ -470,26 +470,44 @@ public class Minesweeper implements Runnable {
 		boolean a1 = true;
 		boolean a2 = true;
 		boolean a3 = true;
-		while (a1 || a2 || a3) {
-			a1 = a2 = a3 = false;
-			// printBoard(board);
-			a1 = tryComplete(true, board, numCells);
-			// System.out.println(a1);
-			if (!a1) {
-				a2 = assumeMine();
-				if (!a2)
-					a3 = assumeOpen();
+		for (int i = 0; i < 10; i++) {
+			while (a1 || a2 || a3) {
+				a1 = a2 = a3 = false;
+				// printBoard(board);
+				a1 = tryComplete(true, board, numCells);
+				// System.out.println(a1);
+				if (!a1) {
+					a2 = assumeMine();
+					if (!a2)
+						a3 = assumeOpen();
+				}
+				try {
+					Thread.sleep(20);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				read();
+				addAll();
+				// System.out.println(numCells.size());
 			}
 			try {
-				Thread.sleep(20);
+				Thread.sleep(2000);
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			read();
-			addAll();
-			// System.out.println(numCells.size());
+			for (int j = 0; j < wid * hei; j++) {
+				if (board[j] == -1) {
+					click(j % wid, j / wid);
+					a1 = a2 = a3 = true;
+					read();
+					addAll();
+					break;
+				}
+			}
 		}
+
 		System.out.println("Done");
 	}
 }
