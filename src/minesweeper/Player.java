@@ -2,11 +2,19 @@ package minesweeper;
 
 import java.awt.AWTException;
 import java.awt.Robot;
+import java.awt.event.InputEvent;
 
 public class Player implements Runnable {
 	public static void main(String[] args) throws AWTException, InterruptedException {
 		Robot r = new Robot();
-		Minesweeper ms = new Minesweeper(r);
+		// r.mouseMove(370, 180);
+		// r.mousePress(InputEvent.BUTTON1_MASK);
+		// r.mouseRelease(InputEvent.BUTTON1_MASK);
+		r.mouseMove(370, 380);
+		r.mousePress(InputEvent.BUTTON1_MASK);
+		r.mouseRelease(InputEvent.BUTTON1_MASK);
+		Thread.sleep(50);
+		Minesweeper ms = Minesweeper.chezpoor(r);
 		Thread game = new Thread(ms);
 		game.start();
 		Thread.sleep(10000);
