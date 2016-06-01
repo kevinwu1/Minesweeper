@@ -17,9 +17,10 @@ public class Player implements Runnable {
 		Minesweeper ms = Minesweeper.chezpoor(r);
 		Thread game = new Thread(ms);
 		game.start();
-		Thread.sleep(20000);
+		Thread.sleep(5000);
 		game.interrupt();
 		game.stop();
+		System.out.println("timed out");
 		// r.mouseMove(left(25) + Match.BLUE.xOff, top(7) + Match.BLUE.yOff);
 		// System.out.println(r.getPixelColor(xmid(24) - 9, ymid(7)).getRGB());
 		// for (int i = 0; i < HEI; i++) {
